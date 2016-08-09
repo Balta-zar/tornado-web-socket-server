@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            text-align: center;
+        }
+    </style>
+    
+    <script src="http://code.jquery.com/jquery.min.js"></script>
+    <script>
+        writeMessage = function(data) {
+            $('#messages').prepend("</br>" + data);
+        };
+        
+        $(document).ready(function() {
+            $("#send_message").hide();
+            $("#open_connection").attr("disabled", false);
+            $("#close_connection").attr("disabled", true);
+            $("#message").val('');
+            
+            var ws;
+         
+            $("#open_connection").click(function(evt) {
+                evt.preventDefault();
+                
+                $("#open_connection").attr("disabled", true);
+                $("#close_connection").attr("disabled", false);
+       
+                ws = new WebSocket("ws://localhost:8000/getValue");
+                
+                ws.onmessage = function(evt) {
+                    writeMessage(evt.data);
+                };
+       
+                ws.onclose = function(evt) {
+                    $("#send_message").hide();
+                    $("#message").val('');
+                    writeMessage("<b>Connection Closed</b>");
+                };
+       
+                ws.onopen = function(evt) {
+                    $("#send_message").show();
+                };
+            });
+            $("#close_connection").click(function(evt) {
+                ws.close();
+                $("#open_connection").attr("disabled", false);
+                $("#close_connection").attr("disabled", true);
+            });
+     
+            $("#send").click(function(evt) {
+                ws.send($("#message").val());
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Web Socket server with tornado</h1>
+    <div id="connection">
+        <input type="submit" id="open_connection" value="open_connection" />
+        <input type="submit" id="close_connection" value="close_connection" />
+    </div>
+    <div id="send_message">
+        </br></br>
+        <input type="text" id="message" placeholder="message" />
+        <input type="submit" id="send" value="send message" />
+    </div>
+    <div id="messages"></div>
+</body>
+</html>
